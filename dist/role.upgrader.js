@@ -1,33 +1,27 @@
+var Utils = require('lib.utils');
+
+function design(maxEnergy) {
+  const baseCost  = (1*100)+(1*50)+(1*50);
+  const unitCost  = (1*50)+(1*50);
+  maxEnergy       = maxEnergy - baseCost;
+  let units       = Math.max(0,Math.floor(maxEnergy/unitCost));
+  let workBits    = 0;
+  let carrBits    = units
+  let moveBits    = units + (Math.floor((maxEnergy-(unitCost*units))/50));
+  return [MOVE,CARRY,WORK].concat(Array(workBits).fill(WORK)).concat(Array(carrBits).fill(CARRY)).concat(Array(moveBits).fill(MOVE)).sort();
+}
 var roleUpgrader = {
-
     spawn: function(base) {
-        function design(energy) {
-            let d = {
-                    200:    [WORK,MOVE,CARRY],
-                    250:    [WORK,MOVE,CARRY,CARRY],
-                    300:    [WORK,WORK,MOVE,CARRY],
-                    350:    [WORK,WORK,MOVE,MOVE,CARRY],
-                    400:    [WORK,WORK,MOVE,MOVE,MOVE,CARRY],
-                    450:    [WORK,WORK,MOVE,MOVE,CARRY,CARRY,CARRY],
-                    500:    [WORK,WORK,MOVE,MOVE,MOVE,CARRY,CARRY,CARRY],
-                    550:    [WORK,WORK,WORK,MOVE,MOVE,CARRY,CARRY,CARRY],
-                    600:    [WORK,WORK,WORK,MOVE,MOVE,MOVE,CARRY,CARRY,CARRY],
-                    650:    [WORK,WORK,WORK,MOVE,MOVE,MOVE,MOVE,CARRY,CARRY,CARRY],
-                    700:    [WORK,WORK,WORK,WORK,MOVE,MOVE,MOVE,CARRY,CARRY,CARRY],
-                    750:    [WORK,WORK,WORK,WORK,MOVE,MOVE,MOVE,MOVE,CARRY,CARRY,CARRY],
-                    800:    [WORK,WORK,WORK,WORK,MOVE,MOVE,MOVE,MOVE,MOVE,CARRY,CARRY,CARRY]
-            };
-            return d[Math.min(800,parseInt(energy/50)*50)];
-        }
-
-        let energy = parseInt(Game.spawns[base].room.energyAvailable/50)*50;
-        let newName = "u-"+Game.time;
-        if (!Game.spawns[base].spawning && energy == Game.spawns[base].room.energyCapacityAvailable) {
-            console.log('Spawning new Upgrader: ' + newName);
-            Game.spawns[base].spawnCreep(design(energy), newName, {memory: {role: 'upgrader'}});
+        let spawn     = Game.spawns[base];
+        let energy    = spawn.room.energyAvailable;
+        if (!spawn.spawning && energy == spawn.room.energyCapacityAvailable) {
+            let template = design(energy);
+            let newName = Utils.nameCreep('upgrader',base);
+            console.log('Spawning Upgrader['+energy+']: ' + newName+"\ntemplate: "+JSON.stringify(template));
+            spawn.spawnCreep(design(energy), newName, {memory: {role: 'upgrader'}});
         }
     },
-    
+
     /** @param {Creep} creep **/
     run: function(creep) {
 

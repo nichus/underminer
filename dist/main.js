@@ -39,7 +39,7 @@ module.exports.loop = function () {
             roleMule.spawn(base);
         } else if (builders.length < 2) {
             roleBuilder.spawn(base);
-        } else if (upgraders.length < 0) {
+        } else if (upgraders.length < 1) {
             roleUpgrader.spawn(base);
         }
 

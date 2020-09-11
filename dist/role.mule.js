@@ -3,15 +3,11 @@ var Utils = require('lib.utils');
 function design(maxEnergy) {
   const baseCost  = (1*100)+(1*50)+(1*50);
   const unitCost  = (1*50)+(1*50);
-  console.log('unitCost: '+unitCost);
   maxEnergy       = maxEnergy - baseCost;
-  console.log('maxEnergy: '+maxEnergy);
   let units       = Math.max(0,Math.floor(maxEnergy/unitCost));
-  console.log('units: '+units);
   let workBits    = 0;
   let carrBits    = units
   let moveBits    = units + (Math.floor((maxEnergy-(unitCost*units))/50));
-  console.log(workBits+" "+carrBits+" "+moveBits);
   return [MOVE,CARRY,WORK].concat(Array(workBits).fill(WORK)).concat(Array(carrBits).fill(CARRY)).concat(Array(moveBits).fill(MOVE)).sort();
 }
 var roleMule = {
