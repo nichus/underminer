@@ -33,22 +33,29 @@ module.exports.loop = function () {
         let upgraders   = creeps_by_role(base,"upgrader");
         let mules       = creeps_by_role(base,"mule");
 
-        if (harvesters.length < 1) {
+        if (harvesters.length < 2) {
             roleHarvester.spawn(base);
         } else if (mules.length < 1) {
             roleMule.spawn(base);
         } else if (builders.length < 2) {
             roleBuilder.spawn(base);
-        } else if (upgraders.length < 2) {
-            //roleUpgrader.spawn(base);
+        } else if (upgraders.length < 0) {
+            roleUpgrader.spawn(base);
+        }
+
+        for (var name in Memory.creeps) {
+          if (!Game.creeps[name]) {
+            delete Memory.creeps[name];
+            console.log('Clearing non-existing creep memory:', name);
+          }
         }
 
         if(Game.spawns[base].spawning) {
             let spawningCreep = Game.creeps[Game.spawns[base].spawning.name];
             Game.spawns[base].room.visual.text(
                 '🛠️' + spawningCreep.memory.role,
-                Game.spawns[base].pos.x + 1, 
-                Game.spawns[base].pos.y, 
+                Game.spawns[base].pos.x + 1,
+                Game.spawns[base].pos.y,
                 {align: 'left', opacity: 0.8});
         }
     }

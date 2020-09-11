@@ -21,7 +21,7 @@ var roleUpgrader = {
         }
 
         let energy = parseInt(Game.spawns[base].room.energyAvailable/50)*50;
-        let newName = "u."+Game.time;
+        let newName = "u-"+Game.time;
         if (!Game.spawns[base].spawning && energy == Game.spawns[base].room.energyCapacityAvailable) {
             console.log('Spawning new Upgrader: ' + newName);
             Game.spawns[base].spawnCreep(design(energy), newName, {memory: {role: 'upgrader'}});

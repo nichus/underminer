@@ -1,31 +1,35 @@
+var Utils = require('lib.utils');
+
 function design(maxEnergy) {
   const baseCost  = (1*100)+(1*50)+(1*50);
   const unitCost  = baseCost;
-  let maxEnergy   = maxEnergy - baseCost;
-  let units       = Math.min(0,Math.floor(maxEnergy/unitCost));
+  let energy      = maxEnergy - baseCost;
+  let units       = Math.max(0,Math.floor(energy/unitCost));
   let workBits    = units;
-  let carrBits    = units + Math.floor((maxEnergy-(units*unitCost))/100);
-  let moveBits    = units + Math.floor((maxEnergy-(units*unitCost)-((carrBits-workBits)*50))/50);
-  return [MOVE,CARRY,WORK].concat(Array(workBits).fill(WORK)).concat(Array(carrBits).fill(CARRY)).concat(Array(moveBits).fill(MOVE));
+  let carrBits    = units + Math.floor((energy-(units*unitCost))/100);
+  let moveBits    = units + Math.floor((energy-(units*unitCost)-((carrBits-workBits)*50))/50);
+  console.log("workBits: "+workBits+", carrBits: "+carrBits+", moveBits: "+moveBits);
+  return [MOVE,CARRY,WORK].concat(Array(workBits).fill(WORK)).concat(Array(carrBits).fill(CARRY)).concat(Array(moveBits).fill(MOVE)).sort();
 }
 var roleBuilder = {
     spawn: function(base) {
         let energy = parseInt(Game.spawns[base].room.energyAvailable/50)*50;
-        let newName = "b."+Game.spawns[base].room.name+"."+Game.time;
         if (!Game.spawns[base].spawning && energy == Game.spawns[base].room.energyCapacityAvailable) {
-            console.log('Spawning new builder: ' + newName);
-            Game.spawns[base].spawnCreep(design(energy), newName, {memory: {role: 'builder'}});
+            let newName = Utils.nameCreep('builder',base);
+            let template = design(energy);
+            console.log('Spawning new builder: ' + newName+"\ntemplate: "+template);
+            Game.spawns[base].spawnCreep(template, newName, {memory: {role: 'builder'}});
         }
     },
     /** @param {Creep} creep **/
     run: function(creep) {
         function findRepairable() {
-            return creep.room.find(FIND_STRUCTURES, { 
+            return creep.room.find(FIND_STRUCTURES, {
                 filter: object => ((object.hits < 1200000) && (object.hits < parseInt(object.hitsMax*0.75)))
             });
         }
         function doBuilding() {
-	        var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
+            var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
             if(targets.length) {
                 if(creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(targets[0], {visualizePathStyle: {stroke: '#aa00ff'}});
@@ -45,7 +49,7 @@ var roleBuilder = {
             let drops = creep.pos.findClosestByPath(creep.room.find(FIND_DROPPED_RESOURCES), {
                 filter: (d) => { return (d.resourceType == RESOURCE_ENERGY) }
             });
-            let containers = creep.room.find(FIND_STRUCTURES, { 
+            let containers = creep.room.find(FIND_STRUCTURES, {
                 filter: (s) => { return((s.structureType == STRUCTURE_CONTAINER) && (s.store[RESOURCE_ENERGY] > 0)) }
             });
             let source = creep.pos.findClosestByPath(containers);
