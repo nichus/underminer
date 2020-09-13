@@ -26,8 +26,8 @@ var roleUpgrader = {
     run: function(creep) {
 
         function findRepairable() {
-            return creep.room.find(FIND_STRUCTURES, { 
-                filter: object => ((object.hits < 1200000) && (object.hits < parseInt(object.hitsMax*0.5)))
+            return creep.room.find(FIND_STRUCTURES, {
+                filter: object => ((object.hits < 12000) && (object.hits < parseInt(object.hitsMax*0.5)))
             });
         }
         function doRepairs() {

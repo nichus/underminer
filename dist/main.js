@@ -14,17 +14,20 @@ module.exports.loop = function () {
     for (let base in Game.spawns) {
         let towers = Game.spawns[base].room.find(FIND_MY_STRUCTURES, {filter: (s) => s.structureType == STRUCTURE_TOWER});
         for (id in towers) {
-            var closestDamagedStructure = towers[id].pos.findClosestByRange(FIND_STRUCTURES, {
-                filter: (object) => (object.hits < 100000) && (object.hits < parseInt(object.hitsMax*0.1))
+          let tower = towers[id];
+          if (tower.store[RESOURCE_ENERGY] > tower.store.getFreeCapacity(RESOURCE_ENERGY)) {
+            var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
+                filter: (object) => (object.hits < 250000) && (object.hits < parseInt(object.hitsMax*0.75))
             });
-            if(closestDamagedStructure) {
-                towers[id].repair(closestDamagedStructure);
+            if (closestDamagedStructure) {
+              tower.repair(closestDamagedStructure);
             }
+          }
 
-            var closestHostile = towers[id].pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-            if(closestHostile) {
-                tower[id].attack(closestHostile);
-            }
+          var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+          if (closestHostile) {
+            tower.attack(closestHostile);
+          }
         }
 
         let harvesters  = creeps_by_role(base,"harvester");
@@ -35,11 +38,11 @@ module.exports.loop = function () {
 
         if (harvesters.length < 2) {
             roleHarvester.spawn(base);
-        } else if (mules.length < 1) {
+        } else if (mules.length < 2) {
             roleMule.spawn(base);
         } else if (builders.length < 2) {
             roleBuilder.spawn(base);
-        } else if (upgraders.length < 1) {
+        } else if (upgraders.length < 0) {
             roleUpgrader.spawn(base);
         }
 

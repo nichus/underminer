@@ -37,7 +37,10 @@ var roleMule = {
     }
 
     if (creep.memory.storing) {
-      let target = Utils.getChargeTarget(creep.name);
+      let ext = creep.pos.findClosestByPath(Utils.getChargeExtension(creep.room.name));
+      let spn = creep.pos.findClosestByPath(Utils.getChargeSpawner(creep.room.name));
+      let twr = creep.pos.findClosestByPath(Utils.getChargeTower(creep.room.name));
+      let target = [ext,spn,twr].filter((i) => {return i != null;})[0];
       if (target!==null) {
         if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
           creep.moveTo(target, {visualizePathStyle: {stroke: '#aaffaa'}});

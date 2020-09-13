@@ -25,7 +25,7 @@ var roleBuilder = {
     run: function(creep) {
         function findRepairable() {
             return creep.room.find(FIND_STRUCTURES, {
-                filter: object => ((object.hits < 1200000) && (object.hits < parseInt(object.hitsMax*0.75)))
+                filter: object => ((object.hits < 12000) && (object.hits < parseInt(object.hitsMax*0.75)))
             });
         }
         function doBuilding() {
@@ -83,7 +83,7 @@ var roleBuilder = {
                 }
 	        }
 	    } else {
-	        getEnergy();
+	        Utils.fetchEnergy(creep.name);
 	    }
 	}
 };
