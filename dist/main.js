@@ -1,3 +1,4 @@
+var roleDistributor = require('role.distributor');
 var roleHarvester   = require('role.harvester');
 var roleUpgrader    = require('role.upgrader');
 var roleBuilder     = require('role.builder');
@@ -11,76 +12,83 @@ function creeps_by_role(spawner,role) {
 
 module.exports.loop = function () {
 
-    for (let base in Game.spawns) {
-        let towers = Game.spawns[base].room.find(FIND_MY_STRUCTURES, {filter: (s) => s.structureType == STRUCTURE_TOWER});
-        for (id in towers) {
-          let tower = towers[id];
-          if (tower.store[RESOURCE_ENERGY] > tower.store.getFreeCapacity(RESOURCE_ENERGY)) {
-            var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
-                filter: (object) => (object.hits < 250000) && (object.hits < parseInt(object.hitsMax*0.75))
-            });
-            if (closestDamagedStructure) {
-              tower.repair(closestDamagedStructure);
-            }
-          }
-
-          var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-          if (closestHostile) {
-            tower.attack(closestHostile);
-          }
+  for (let base in Game.spawns) {
+    let towers = Game.spawns[base].room.find(FIND_MY_STRUCTURES, {filter: (s) => s.structureType == STRUCTURE_TOWER});
+    for (id in towers) {
+      let tower = towers[id];
+      if (tower.store[RESOURCE_ENERGY] > tower.store.getFreeCapacity(RESOURCE_ENERGY)) {
+        var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
+            filter: (object) => (object.hits < 250000) && (object.hits < parseInt(object.hitsMax*0.75))
+        });
+        if (closestDamagedStructure) {
+          tower.repair(closestDamagedStructure);
         }
+      }
 
-        let harvesters  = creeps_by_role(base,"harvester");
-        let workers     = creeps_by_role(base,"worker");
-        let builders    = creeps_by_role(base,"builder");
-        let upgraders   = creeps_by_role(base,"upgrader");
-        let mules       = creeps_by_role(base,"mule");
-
-        if (harvesters.length < 2) {
-            roleHarvester.spawn(base);
-        } else if (mules.length < 2) {
-            roleMule.spawn(base);
-        } else if (builders.length < 2) {
-            roleBuilder.spawn(base);
-        } else if (upgraders.length < 0) {
-            roleUpgrader.spawn(base);
-        }
-
-        for (var name in Memory.creeps) {
-          if (!Game.creeps[name]) {
-            delete Memory.creeps[name];
-            console.log('Clearing non-existing creep memory:', name);
-          }
-        }
-
-        if(Game.spawns[base].spawning) {
-            let spawningCreep = Game.creeps[Game.spawns[base].spawning.name];
-            Game.spawns[base].room.visual.text(
-                '🛠️' + spawningCreep.memory.role,
-                Game.spawns[base].pos.x + 1,
-                Game.spawns[base].pos.y,
-                {align: 'left', opacity: 0.8});
-        }
+      var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+      if (closestHostile) {
+        tower.attack(closestHostile);
+      }
     }
 
-    for (let name in Game.creeps) {
-        let creep = Game.creeps[name];
-        if(creep.memory.role == 'harvester') {
-            roleHarvester.run(creep);
+    if (Game.spawns[base].spawning) {
+      let spawningCreep = Game.creeps[Game.spawns[base].spawning.name];
+      Game.spawns[base].room.visual.text(
+          '🛠️' + spawningCreep.memory.role,
+          Game.spawns[base].pos.x + 1,
+          Game.spawns[base].pos.y,
+          {align: 'left', opacity: 0.8});
+    } else {
+      let harvesters    = creeps_by_role(base,"harvester");
+      let workers       = creeps_by_role(base,"worker");
+      let builders      = creeps_by_role(base,"builder");
+      let upgraders     = creeps_by_role(base,"upgrader");
+      let mules         = creeps_by_role(base,"mule");
+      let distributors  = creeps_by_role(base,"distributor");
+
+      if (harvesters.length < 2) {
+          roleHarvester.spawn(base);
+      } else if (distributors.length < 1) {
+          roleDistributor.spawn(base);
+      } else if (mules.length < 2) {
+          roleMule.spawn(base);
+      } else if (builders.length < 1) {
+          roleBuilder.spawn(base);
+      } else if (upgraders.length < 1) {
+          roleUpgrader.spawn(base);
+      }
+      /*
+      for (var name in Memory.creeps) {
+        if (name.startsWith('d-') && !Game.creeps[name]) {
+          delete Memory.creeps[name];
+          console.log('Clearing non-existing creep memory:', name);
         }
-        if(creep.memory.role == 'upgrader') {
-            roleUpgrader.run(creep);
-        }
-        if(creep.memory.role == 'builder') {
-            roleBuilder.run(creep);
-        }
-        if(creep.memory.role == 'mule') {
-            roleMule.run(creep);
-        }
-        /*
-        if (creep.memory.role == 'worker') {
-            roleWorker.run(creep);
-        }
-        */
+      }
+      */
     }
+  }
+
+  for (let name in Game.creeps) {
+      let creep = Game.creeps[name];
+      if(creep.memory.role == 'harvester') {
+          roleHarvester.run(creep);
+      }
+      if(creep.memory.role == 'distributor') {
+          roleDistributor.run(creep);
+      }
+      if(creep.memory.role == 'mule') {
+          roleMule.run(creep);
+      }
+      if(creep.memory.role == 'upgrader') {
+          roleUpgrader.run(creep);
+      }
+      if(creep.memory.role == 'builder') {
+          roleBuilder.run(creep);
+      }
+      /*
+      if (creep.memory.role == 'worker') {
+          roleWorker.run(creep);
+      }
+      */
+  }
 }

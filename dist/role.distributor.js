@@ -15,8 +15,7 @@ function claimInheritance(child) {
   for (let name in Memory.creeps) {
     if (!Game.creeps[name] && name.startsWith(prefix)) {
       let memory = {
-        container: Memory.creeps[name].container,
-        design: Memory.creeps[name].design
+        design: Memory.creeps[name].design,
       };
       console.log("Inheriting from: "+name);
       console.log(JSON.stringify(memory));
@@ -26,27 +25,19 @@ function claimInheritance(child) {
   }
 }
 
-var roleMule = {
+var roleDistributor = {
   spawn: function(base) {
-    // console.log("Generating Mule design:");
-    let spawn       = Game.spawns[base];
-    let energy      = spawn.room.energyAvailable;
-    let newName     = Utils.nameCreep('mule',base);
+    let spawn     = Game.spawns[base];
+    let energy    = spawn.room.energyAvailable;
+    let newName   = Utils.nameCreep('distributor',base);
     let inheritance = claimInheritance(newName);
-    if (energy < 250) {
-      return;
-    }
     if (!inheritance || !inheritance.design) {
-      if (!inheritance) { inheritance = {}; }
       inheritance.design = design(energy);
     }
     let spawnCost   = inheritance.design.reduce((s,e) => s+BODYPART_COST[e], 0);
-    // console.log(JSON.stringify(template));
-    //return { name: newName, template: template, memory: memory };
     if (!spawn.spawning && energy >= spawnCost) {
-      let memory  = { role: 'mule', container: inheritance.container, design: inheritance.design };
-      //let memory   = { role: 'mule', container: inheritance.container };
-      console.log('Spawning Mule['+energy+']: ' + newName+"\ntemplate: "+ JSON.stringify(inheritance.design)+"\nmemory: "+JSON.stringify(memory));
+      let memory  = {role: 'distributor', container: inheritance.container, design: inheritance.design};
+      console.log('Spawning Distributor['+energy+']: ' + newName+"\ntemplate: "+ JSON.stringify(inheritance.design)+"\nmemory: "+JSON.stringify(memory));
       spawn.spawnCreep(inheritance.design, newName, {memory: memory});
     }
   },
@@ -54,20 +45,18 @@ var roleMule = {
   run: function(creep) {
     if (creep.memory.storing && creep.store[RESOURCE_ENERGY] == 0) {
       creep.memory.storing = false;
-      creep.say('🔄 collect');
+      creep.say('🔄 charge');
     }
     if (!creep.memory.storing && creep.store.getFreeCapacity() == 0) {
       creep.memory.storing = true;
-      creep.say('⚡ deposit');
+      creep.say('⚡  hauling');
     }
 
     if (creep.memory.storing) {
-      let target = creep.pos.findClosestByPath(creep.room.find(FIND_STRUCTURES, {
-          filter: (structure) => {
-            return (structure.structureType == STRUCTURE_STORAGE && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
-          }
-        })
-      );
+      let ext = creep.pos.findClosestByPath(Utils.getChargeExtension(creep.room.name));
+      let spn = creep.pos.findClosestByPath(Utils.getChargeSpawner(creep.room.name));
+      let twr = creep.pos.findClosestByPath(Utils.getChargeTower(creep.room.name));
+      let target = [ext,spn,twr].filter((i) => {return i != null;})[0];
       if (target!==null) {
         if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
           creep.moveTo(target, {visualizePathStyle: {stroke: '#aaffaa'}});
@@ -77,24 +66,9 @@ var roleMule = {
         creep.moveTo(parks[0], {visualizePathStyle: {stroke: '#ffffaa'}});
       }
     } else {
-      let drops = creep.pos.findClosestByPath(creep.room.find(FIND_DROPPED_RESOURCES), {
-          filter: (d) => { return (d.resourceType == RESOURCE_ENERGY) }
-      });
-      let container = Game.getObjectById(creep.memory.container);
-      if (drops) {
-        if (creep.pickup(drops) == ERR_NOT_IN_RANGE) {
-          creep.moveTo(drops,  {visualizePathStyle: {stroke: '#ffaa00'}});
-        }
-        if (creep.withdraw(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-          // do nothing;
-        }
-      } else {
-        if (creep.withdraw(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-          creep.moveTo(container, {visualizePathStyle: {stroke: '#ffaa00'}});
-        }
-      }
+      Utils.fetchEnergy(creep.name);
     }
   }
 };
 
-module.exports = roleMule;
+module.exports = roleDistributor;
