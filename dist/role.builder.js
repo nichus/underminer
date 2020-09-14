@@ -11,35 +11,23 @@ function design(maxEnergy) {
   console.log("workBits: "+workBits+", carrBits: "+carrBits+", moveBits: "+moveBits);
   return [MOVE,CARRY,WORK].concat(Array(workBits).fill(WORK)).concat(Array(carrBits).fill(CARRY)).concat(Array(moveBits).fill(MOVE)).sort();
 }
-function claimInheritance(child) {
-  let prefix=child.match(/^.*-.*-/)[0];
-  for (let name in Memory.creeps) {
-    if (!Game.creeps[name] && name.startsWith(prefix)) {
-      let memory = {
-        design: Memory.creeps[name].design
-      };
-      console.log("Inheriting from: "+name);
-      console.log(JSON.stringify(memory));
-      delete Memory.creeps[name]
-      return memory;
-    }
-  }
-}
 var roleBuilder = {
-  spawn: function(base) {
+  spawn: function(base,inheritance) {
     let spawn   = Game.spawns[base];
     let energy  = spawn.room.energyAvailable;
     let newName = Utils.nameCreep('builder',base);
-    let inheritance = claimInheritance(newName);
     if (!inheritance || !inheritance.design) {
+      console.log('Missing inheritance!');
+      if (!inheritance) { inheritance = {}; }
       inheritance.design = design(energy);
     }
     let spawnCost   = inheritance.design.reduce((s,e) => s+BODYPART_COST[e], 0);
-    if (!spawn.spawning && energy >= spawnCost) {
+    if (energy >= spawnCost) {
       let memory  = {role: 'builder', design: inheritance.design};
       console.log('Spawning Builder['+energy+']: ' + newName+"\ntemplate: "+JSON.stringify(inheritance.design)+"\nmemory: "+JSON.stringify(memory));
-      spawn.spawnCreep(inheritance.design, newName, {memory: memory});
+      return spawn.spawnCreep(inheritance.design, newName, {memory: memory});
     }
+    return 1;
   },
   /** @param {Creep} creep **/
   run: function(creep) {
@@ -62,24 +50,6 @@ var roleBuilder = {
         let target  = creep.pos.findClosestByPath(targets);
         if (creep.repair(target) == ERR_NOT_IN_RANGE) {
           creep.moveTo(target);
-        }
-      }
-    }
-    function getEnergy() {
-      let drops = creep.pos.findClosestByPath(creep.room.find(FIND_DROPPED_RESOURCES), {
-        filter: (d) => { return (d.resourceType == RESOURCE_ENERGY) }
-      });
-      let containers = creep.room.find(FIND_STRUCTURES, {
-        filter: (s) => { return((s.structureType == STRUCTURE_CONTAINER) && (s.store[RESOURCE_ENERGY] > 0)) }
-      });
-      let source = creep.pos.findClosestByPath(containers);
-      if (drops) {
-        if (creep.pickup(drops) == ERR_NOT_IN_RANGE) {
-          creep.moveTo(drops);
-        }
-      } else if (containers.length>0) {
-        if (creep.withdraw(source, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-          creep.moveTo(source, {visualizePathStyle: {stroke: '#ffaa00'}});
         }
       }
     }

@@ -6,37 +6,24 @@ function design(maxEnergy) {
   let workBits    = Math.min(4,Math.max(0, Math.floor(maxEnergy/100)));
   return [MOVE,WORK,WORK].concat(Array(workBits).fill(WORK)).sort();
 }
-function claimInheritance(child) {
-  let prefix=child.match(/^.*-.*-/)[0];
-  for (let name in Memory.creeps) {
-    if (!Game.creeps[name] && name.startsWith(prefix)) {
-      let memory = {
-        container: Memory.creeps[name].container,
-        design: Memory.creeps[name].design,
-      };
-      console.log("Inheriting from: "+name);
-      console.log(JSON.stringify(memory));
-      delete Memory.creeps[name]
-      return memory;
-    }
-  }
-}
+
 var roleHarvester = {
-  spawn: function(base) {
+  spawn: function(base,inheritance) {
     let spawn   = Game.spawns[base];
     let energy  = spawn.room.energyAvailable;
     let newName = Utils.nameCreep('harvester',base);
-    let inheritance = claimInheritance(newName);
     if (!inheritance || !inheritance.design) {
-      inheritance = {};
+      console.log('Missing inheritance!');
+      if (!inheritance) { inheritance = {}; }
       inheritance.design = design(energy);
     }
     let spawnCost   = inheritance.design.reduce((s,e) => s+BODYPART_COST[e], 0);
-    if (!spawn.spawning && energy >= spawnCost) {
+    if (energy >= spawnCost) {
       let memory  = {role: 'harvester', container: inheritance.container, design: inheritance.design};
       console.log('Spawning Harvester['+energy+']: ' + newName+"\ntemplate: "+ JSON.stringify(inheritance.design)+"\nmemory: "+JSON.stringify(memory));
-      spawn.spawnCreep(inheritance.design, newName, {memory: memory});
+      return spawn.spawnCreep(inheritance.design, newName, {memory: memory});
     }
+    return 1;
   },
   /** @param {Creep} creep **/
   run: function(creep) {

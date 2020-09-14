@@ -10,35 +10,24 @@ function design(maxEnergy) {
   let moveBits    = units + (Math.floor((maxEnergy-(unitCost*units))/50));
   return [MOVE,CARRY,WORK].concat(Array(workBits).fill(WORK)).concat(Array(carrBits).fill(CARRY)).concat(Array(moveBits).fill(MOVE)).sort();
 }
-function claimInheritance(child) {
-  let prefix=child.match(/^.*-.*-/)[0];
-  for (let name in Memory.creeps) {
-    if (!Game.creeps[name] && name.startsWith(prefix)) {
-      let memory = {
-        design: Memory.creeps[name].design
-      };
-      console.log("Inheriting from: "+name);
-      console.log(JSON.stringify(memory));
-      delete Memory.creeps[name]
-      return memory;
-    }
-  }
-}
+
 var roleUpgrader = {
-  spawn: function(base) {
+  spawn: function(base,inheritance) {
     let spawn   = Game.spawns[base];
     let energy  = spawn.room.energyAvailable;
     let newName = Utils.nameCreep('upgrader',base);
-    let inheritance = claimInheritance(newName);
     if (!inheritance || !inheritance.design) {
+      console.log("Missing Inheritance!");
+      if (!inheritance) { inheritance = {} }
       inheritance.design = design(energy);
     }
     let spawnCost   = inheritance.design.reduce((s,e) => s+BODYPART_COST[e], 0);
-    if (!spawn.spawning && energy >= spawnCost) {
+    if (energy >= spawnCost) {
       let memory  = {role: 'upgrader', design: inheritance.design};
       console.log('Spawning Upgrader['+energy+']: ' + newName+"\ntemplate: "+JSON.stringify(inheritance.design)+"\nmemory: "+JSON.stringify(memory));
-      spawn.spawnCreep(inheritance.design, newName, {memory: memory});
+      return spawn.spawnCreep(inheritance.design, newName, {memory: memory});
     }
+    return 1;
   },
 
     /** @param {Creep} creep **/
