@@ -10,6 +10,7 @@ function design(maxEnergy) {
   let moveBits    = units + Math.floor((energy-(units*unitCost)-((carrBits-workBits)*50))/50);
   console.log("workBits: "+workBits+", carrBits: "+carrBits+", moveBits: "+moveBits);
   return [MOVE,CARRY,WORK].concat(Array(workBits).fill(WORK)).concat(Array(carrBits).fill(CARRY)).concat(Array(moveBits).fill(MOVE)).sort();
+  console.log(FOO);
 }
 var roleBuilder = {
   spawn: function(base,inheritance) {

@@ -29,7 +29,7 @@ var roleHarvester = {
   run: function(creep) {
     let container = creep.memory.container;
     if (typeof container === 'undefined') {
-      let containers = creep.room.find(FIND_STRUCTURES, {
+      const containers = creep.room.find(FIND_STRUCTURES, {
         filter: (s) => { return((s.structureType == STRUCTURE_CONTAINER) && (s.store[RESOURCE_ENERGY] < s.storeCapacity)) }
       });
       container = creep.pos.findClosestByPath(containers);

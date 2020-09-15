@@ -11,14 +11,23 @@ const CREEP_COUNTS = Object.freeze({
   mule: 2,
   distributor: 1,
   builder: 1,
-  upgrader: 1
+  upgrader: 2
+});
+const SPAWN_PRIORITY = Object.freeze({
+  distributor: 0,
+  mule: 1,
+  harvester: 2,
+  builder: 3,
+  upgrader: 4
 });
 
 function creeps_by_role(spawner,role) {
     return _.filter(Game.spawns[spawner].room.find(FIND_MY_CREEPS), c => c.memory.role == role);
 }
 function spawnCreep(base,roomCreeps,roomName) {
-  for (memory in Memory.creeps) {
+  let memories = Object.keys(Memory.creeps).sort(function(a,b) { return SPAWN_PRIORITY[Memory.creeps[a].role] - SPAWN_PRIORITY[Memory.creeps[b].role]});
+  //console.log(JSON.stringify(memories));
+  _.forEach(memories, function(memory) {
     //console.log('Looking at memory of: '+memory);
     let status = 2;
     if (memory.includes('-'+roomName+'-') && !roomCreeps.includes(memory)) {
@@ -53,7 +62,7 @@ function spawnCreep(base,roomCreeps,roomName) {
       }
       */
     }
-  }
+  });
 }
 
 module.exports.loop = function () {
