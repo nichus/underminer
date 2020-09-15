@@ -31,9 +31,14 @@ var roleBuilder = {
   },
   /** @param {Creep} creep **/
   run: function(creep) {
-    function findRepairable() {
+    function findRepairable(minHits,healthPercent) {
       return creep.room.find(FIND_STRUCTURES, {
-        filter: object => ((object.hits < 12000) && (object.hits < parseInt(object.hitsMax*0.75)))
+        filter: object => ((object.hits < minHits) && (object.hits < parseInt(object.hitsMax*healthPercent)))
+      });
+    }
+    function findRepairableWall(minHits,healthPercent) {
+      return creep.room.find(FIND_STRUCTURES, {
+        filter: object => ((object.hits < minHits) && (object.hits < parseInt(object.hitsMax*healthPercent)))
       });
     }
     function doBuilding() {
@@ -45,7 +50,7 @@ var roleBuilder = {
       }
     }
     function doRepairs() {
-      let targets = findRepairable();
+      let targets = findRepairable(250000,0.75);
       if (creep.store[RESOURCE_ENERGY] > 0 && targets.length > 0) {
         let target  = creep.pos.findClosestByPath(targets);
         if (creep.repair(target) == ERR_NOT_IN_RANGE) {
@@ -65,7 +70,7 @@ var roleBuilder = {
     if (creep.memory.building) {
       if (creep.room.find(FIND_CONSTRUCTION_SITES).length>0) {
         doBuilding();
-      } else if (findRepairable().length > 0) {
+      } else if (findRepairable(250000,0.75).length > 0) {
         doRepairs();
       } else {
         if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {

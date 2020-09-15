@@ -65,7 +65,7 @@ module.exports.loop = function () {
       let tower = towers[id];
       if (tower.store[RESOURCE_ENERGY] > tower.store.getFreeCapacity(RESOURCE_ENERGY)) {
         var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
-            filter: (object) => (object.hits < 250000) && (object.hits < parseInt(object.hitsMax*0.75))
+            filter: (object) => (object.hits < 300000) && (object.hits < parseInt(object.hitsMax*0.85))
         });
         if (closestDamagedStructure) {
           tower.repair(closestDamagedStructure);
