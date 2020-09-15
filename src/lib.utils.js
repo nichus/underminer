@@ -1,4 +1,13 @@
-var utils = {
+const utils = {
+  TASKS: Object.freeze({
+    HARVEST: 'harvest',
+    STORE: 'store',
+    DISTRIBUTE: 'distribute',
+    BUILD: 'build',
+    REPAIR: 'repair',
+    UPGRADE: 'upgrade',
+    IDLE: 'idle'
+  });
   getChargeTarget: function(creepName) {
     let creep = Game.creeps[creepName];
     return creep.pos.findClosestByPath(
