@@ -3,7 +3,6 @@ var roleHarvester   = require('role.harvester');
 var roleUpgrader    = require('role.upgrader');
 var roleBuilder     = require('role.builder');
 var roleMule        = require('role.mule');
-var spawner         = require('spawner');
 
 const CREEP_COUNTS = Object.freeze({
   harvester: 2,
@@ -20,11 +19,13 @@ const SPAWN_PRIORITY = Object.freeze({
   upgrader: 4
 });
 
+/*
 function creeps_by_role(spawner,role) {
     return _.filter(Game.spawns[spawner].room.find(FIND_MY_CREEPS), c => c.memory.role == role);
 }
+*/
 function spawnCreep(base,roomCreeps,roomName) {
-  let memories = Object.keys(Memory.creeps).sort(function(a,b) { return SPAWN_PRIORITY[Memory.creeps[a].role] - SPAWN_PRIORITY[Memory.creeps[b].role]});
+  const memories = Object.keys(Memory.creeps).sort(function(a,b) { return SPAWN_PRIORITY[Memory.creeps[a].role] - SPAWN_PRIORITY[Memory.creeps[b].role]});
   //console.log(JSON.stringify(memories));
   _.forEach(memories, function(memory) {
     //console.log('Looking at memory of: '+memory);
@@ -48,7 +49,7 @@ function spawnCreep(base,roomCreeps,roomName) {
       if (status == 0) {
         console.log("Deleting creep history for: "+memory);
         delete Memory.creeps[memory];
-        return
+        return;
       }
     } else {
       /*
@@ -65,22 +66,21 @@ function spawnCreep(base,roomCreeps,roomName) {
 }
 
 module.exports.loop = function () {
-
-  for (let base in Game.spawns) {
-    let roomName = Game.spawns[base].room.name;
-    let towers = Game.spawns[base].room.find(FIND_MY_STRUCTURES, {filter: (s) => s.structureType == STRUCTURE_TOWER});
-    for (id in towers) {
-      let tower = towers[id];
+  for (const base in Game.spawns) {
+    const roomName = Game.spawns[base].room.name;
+    const towers = Game.spawns[base].room.find(FIND_MY_STRUCTURES, {filter: (s) => s.structureType == STRUCTURE_TOWER});
+    for (const id in towers) {
+      const tower = towers[id];
       if (tower.store[RESOURCE_ENERGY] > tower.store.getFreeCapacity(RESOURCE_ENERGY)) {
-        var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
-            filter: (object) => (object.hits < 300000) && (object.hits < parseInt(object.hitsMax*0.85))
+        const closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
+          filter: object => ((object.hits < 300000) && (object.hits < Number.parseInt(object.hitsMax * 0.85, 10)))
         });
         if (closestDamagedStructure) {
           tower.repair(closestDamagedStructure);
         }
       }
 
-      var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+      const closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
       if (closestHostile) {
         tower.attack(closestHostile);
       }
@@ -114,7 +114,7 @@ module.exports.loop = function () {
 //    console.log("Target: "+creepTarget);
 
     if (Game.spawns[base].spawning) {
-      let spawningCreep = Game.creeps[Game.spawns[base].spawning.name];
+      const spawningCreep = Game.creeps[Game.spawns[base].spawning.name];
       Game.spawns[base].room.visual.text(
           '🛠️' + spawningCreep.memory.role,
           Game.spawns[base].pos.x + 1,
