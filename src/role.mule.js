@@ -58,7 +58,7 @@ var roleMule = {
       }
     } else {
       let drops = creep.pos.findClosestByPath(creep.room.find(FIND_DROPPED_RESOURCES), {
-          filter: (d) => { return (d.resourceType == RESOURCE_ENERGY) }
+//          filter: (d) => { return (d.resourceType == RESOURCE_ENERGY) }
       });
       let container = Game.getObjectById(creep.memory.container);
       if (drops) {
