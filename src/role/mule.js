@@ -42,19 +42,28 @@ var roleMule = {
     }
 
     if (creep.memory.storing) {
-      let target = creep.pos.findClosestByPath(creep.room.find(FIND_STRUCTURES, {
+      /*
+      if (! Memory.rooms[creep.room.name].storage ) {
+        Memory.rooms[creep.room.name].storage = creep.room.find(FIND_STRUCTURES, {
           filter: (structure) => {
             return (structure.structureType == STRUCTURE_STORAGE && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
           }
-        })
-      );
+        })[0].id;
+      }
+      let target = Game.getObjectById(Memory.rooms[creep.room.name].storage);
+      */
+      if (! creep.memory.storage ) {
+        creep.memory.storage = creep.room.find(FIND_STRUCTURES, {
+          filter: (structure) => {
+            return (structure.structureType == STRUCTURE_STORAGE && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
+          }
+        })[0].id;
+      }
+      let target = Game.getObjectById(creep.memory.storage);
       if (target!==null) {
         if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
           creep.moveTo(target, {visualizePathStyle: {stroke: '#aaffaa'}});
         }
-      } else {
-        let parks = creep.room.find(FIND_FLAGS);
-        creep.moveTo(parks[0], {visualizePathStyle: {stroke: '#ffffaa'}});
       }
     } else {
       let drops = creep.pos.findClosestByPath(creep.room.find(FIND_DROPPED_RESOURCES), {

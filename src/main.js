@@ -4,10 +4,16 @@ var roleUpgrader    = require('role.upgrader');
 var roleBuilder     = require('role.builder');
 var roleMule        = require('role.mule');
 
+require('version');
+if (!Memory.SCRIPT_VERSION || Memory.SCRIPT_VERSION != SCRIPT_VERSION) {
+  Memory.SCRIPT_VERSION = SCRIPT_VERSION;
+  console.log('Code Version Updated: ' + SCRIPT_VERSION);
+}
+
 const CREEP_COUNTS = Object.freeze({
   harvester: 2,
   mule: 2,
-  distributor: 1,
+  distributor: 2,
   builder: 1,
   upgrader: 2
 });

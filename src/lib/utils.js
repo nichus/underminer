@@ -7,7 +7,7 @@ const utils = {
     REPAIR: 'repair',
     UPGRADE: 'upgrade',
     IDLE: 'idle'
-  });
+  }),
   getChargeTarget: function(creepName) {
     let creep = Game.creeps[creepName];
     return creep.pos.findClosestByPath(
@@ -54,13 +54,27 @@ const utils = {
   },
   fetchEnergy: function(creepName) {
     let creep = Game.creeps[creepName];
+    /*
+    if (! Memory.rooms[creep.room.name].storage ) {
+      Memory.rooms[creep.room.name].storage = creep.room.find(FIND_STRUCTURES, {
+        filter: (structure) => {
+          return (structure.structureType == STRUCTURE_STORAGE && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
+        }
+      })[0].id;
+    }
+    let source = Game.getObjectById(Memory.rooms[creep.room.name].storage);
+    */
+    if (! creep.memory.storage ) {
+      creep.memory.storage = creep.room.find(FIND_STRUCTURES, {
+        filter: (structure) => {
+          return (structure.structureType == STRUCTURE_STORAGE && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
+        }
+      })[0].id;
+    }
+    let source = Game.getObjectById(creep.memory.storage);
     let drops = creep.pos.findClosestByPath(creep.room.find(FIND_DROPPED_RESOURCES), {
         filter: (d) => { return (d.resourceType == RESOURCE_ENERGY) }
     });
-    let storage = creep.room.find(FIND_STRUCTURES, {
-        filter: (s) => { return((s.structureType == STRUCTURE_STORAGE) && (s.store[RESOURCE_ENERGY] > 0)) }
-    });
-    let source = creep.pos.findClosestByPath(storage);
     if (drops) {
       if (creep.pickup(drops) == ERR_NOT_IN_RANGE) {
         creep.moveTo(drops,  {visualizePathStyle: {stroke: '#ffaa00'}});
@@ -71,7 +85,7 @@ const utils = {
       if ((creep.store.getFreeCapacity() > 0 ) && (creep.withdraw(container, RESOURCE_ENERGY) == 0)) {
         console.log('Stole a cookie from the jar');
       }
-    } else if (storage.length>0) {
+    } else if (source) {
       if (creep.withdraw(source, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
         creep.moveTo(source, {visualizePathStyle: {stroke: '#ffaa00'}});
       }
