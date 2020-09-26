@@ -32,53 +32,54 @@ var roleMule = {
   },
   /** @param {Creep} creep **/
   run: function(creep) {
-    if (creep.memory.storing && creep.store[RESOURCE_ENERGY] == 0) {
+    if (creep.memory.storing && creep.store[RESOURCE_ENERGY] === 0) {
       creep.memory.storing = false;
       creep.say('🔄 collect');
     }
-    if (!creep.memory.storing && creep.store.getFreeCapacity() == 0) {
+    if (!creep.memory.storing && creep.store.getFreeCapacity() === 0) {
       creep.memory.storing = true;
       creep.say('⚡ deposit');
     }
 
     if (creep.memory.storing) {
-      /*
-      if (! Memory.rooms[creep.room.name].storage ) {
-        Memory.rooms[creep.room.name].storage = creep.room.find(FIND_STRUCTURES, {
-          filter: (structure) => {
-            return (structure.structureType == STRUCTURE_STORAGE && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
-          }
-        })[0].id;
-      }
-      let target = Game.getObjectById(Memory.rooms[creep.room.name].storage);
-      */
-      if (! creep.memory.storage ) {
+      if (!creep.memory.storage) {
         creep.memory.storage = creep.room.find(FIND_STRUCTURES, {
-          filter: (structure) => {
-            return (structure.structureType == STRUCTURE_STORAGE && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
+          filter: structure => {
+            return (structure.structureType === STRUCTURE_STORAGE && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
           }
         })[0].id;
       }
-      let target = Game.getObjectById(creep.memory.storage);
-      if (target!==null) {
-        if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+
+      const target = Game.getObjectById(creep.memory.storage);
+      if (target !== null) {
+        // for
+        // const limit = target.store.getCapacity() * 0.5 - target.store.getUsedCapacity(RESOURCE_ENERGY);
+        if (creep.pos.getRangeTo(target) <= 1) {
+          creep.transfer(target, RESOURCE_ENERGY);
+          creep.transfer(target, RESOURCE_KEANIUM);
+          creep.transfer(target, RESOURCE_GHODIUM_OXIDE);
+        } else {
           creep.moveTo(target, {visualizePathStyle: {stroke: '#aaffaa'}});
         }
       }
     } else {
-      let drops = creep.pos.findClosestByPath(creep.room.find(FIND_DROPPED_RESOURCES), {
+      const drops = creep.pos.findClosestByPath(creep.room.find(FIND_DROPPED_RESOURCES), {
 //          filter: (d) => { return (d.resourceType == RESOURCE_ENERGY) }
       });
-      let container = Game.getObjectById(creep.memory.container);
+      const container = Game.getObjectById(creep.memory.container);
       if (drops) {
-        if (creep.pickup(drops) == ERR_NOT_IN_RANGE) {
+        if (creep.pickup(drops) === ERR_NOT_IN_RANGE) {
           creep.moveTo(drops,  {visualizePathStyle: {stroke: '#ffaa00'}});
         }
-        if (creep.withdraw(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-          // do nothing;
+        if (creep.pos.getRangeTo(container) <= 1) {
+          creep.withdraw(container, RESOURCE_ENERGY);
+          creep.withdraw(container, RESOURCE_KEANIUM);
         }
       } else {
-        if (creep.withdraw(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+        if (creep.pos.getRangeTo(container) <= 1) {
+          creep.withdraw(container, RESOURCE_ENERGY);
+          creep.withdraw(container, RESOURCE_KEANIUM);
+        } else {
           creep.moveTo(container, {visualizePathStyle: {stroke: '#ffaa00'}});
         }
       }

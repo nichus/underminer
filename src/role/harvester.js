@@ -1,4 +1,4 @@
-var Utils = require('lib.utils');
+const Utils = require('lib.utils');
 
 function design(maxEnergy) {
   const baseCost  = (2*100)+(1*100);
@@ -23,6 +23,7 @@ var roleHarvester = {
       console.log('Spawning Harvester['+energy+']: ' + newName+"\ntemplate: "+ JSON.stringify(inheritance.design)+"\nmemory: "+JSON.stringify(memory));
       return spawn.spawnCreep(inheritance.design, newName, {memory: memory});
     }
+
     return 1;
   },
   /** @param {Creep} creep **/
@@ -30,15 +31,23 @@ var roleHarvester = {
     let container = creep.memory.container;
     if (typeof container === 'undefined') {
       const containers = creep.room.find(FIND_STRUCTURES, {
-        filter: (s) => { return((s.structureType == STRUCTURE_CONTAINER) && (s.store[RESOURCE_ENERGY] < s.storeCapacity)) }
+        filter: s => {
+          return ((s.structureType === STRUCTURE_CONTAINER) && (s.store[RESOURCE_ENERGY] < s.storeCapacity));
+        }
       });
       container = creep.pos.findClosestByPath(containers);
     } else {
       container = Game.getObjectById(container);
     }
-    if (creep.pos.getRangeTo(container) == 0) {
-      let source = creep.pos.findClosestByPath(FIND_SOURCES);
-      creep.harvest(source);
+    if (creep.pos.getRangeTo(container) === 0) {
+      let source = creep.pos.findInRange(FIND_SOURCES, 1);
+      if (source.length === 0) {
+        source = creep.pos.findInRange(FIND_MINERALS, 1);
+      }
+
+      if (source.length !== 0 && source[0].energy > 0) {
+        creep.harvest(source[0]);
+      }
     } else {
       creep.moveTo(container);
     }

@@ -41,15 +41,15 @@ var roleUpgrader = {
       let targets = findRepairable();
       if (creep.store[RESOURCE_ENERGY] > 0 && targets.length > 0) {
         let target  = creep.pos.findClosestByPath(targets);
-        if (creep.repair(target) == ERR_NOT_IN_RANGE) {
+        if (creep.repair(target) === ERR_NOT_IN_RANGE) {
           creep.moveTo(target);
         }
       }
     }
-    if(creep.memory.upgrading && creep.store[RESOURCE_ENERGY] == 0) {
+    if(creep.memory.upgrading && creep.store[RESOURCE_ENERGY] === 0) {
       creep.memory.upgrading = false;
       creep.say('🔄 charge');
-    } else if (!creep.memory.upgrading && creep.store.getFreeCapacity() == 0) {
+    } else if (!creep.memory.upgrading && creep.store.getFreeCapacity() === 0) {
       creep.memory.upgrading = true;
       creep.say('⚡ upgrade');
     }
@@ -58,7 +58,9 @@ var roleUpgrader = {
       if (findRepairable().length > 0) {
         doRepairs();
       } else {
-        if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+        if (creep.pos.getRangeTo(creep.room.controller) <= 3) {
+          creep.upgradeController(creep.room.controller);
+        } else {
           creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#00aaff'}});
         }
       }
