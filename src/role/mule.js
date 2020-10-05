@@ -4,11 +4,11 @@ function design(maxEnergy) {
   const baseCost  = (1 * BODYPART_COST[WORK])+(1 * BODYPART_COST[CARRY])+(1 * BODYPART_COST[MOVE]);
   const unitCost  = (1 * BODYPART_COST[CARRY])+(1 * BODYPART_COST[MOVE]);
   let avlEnergy   = maxEnergy - baseCost;
-  let units       = Math.max(0,Math.floor(avlEnergy/unitCost));
+  let units       = Math.max(0, Math.floor(avlEnergy / unitCost));
   let workBits    = 0;
   let carrBits    = units
   let moveBits    = units + (Math.floor((avlEnergy - (unitCost * units)) / BODYPART_COST[MOVE]));
-  return [MOVE, CARRY, WORK].concat(new Array(workBits).fill(WORK)).concat(new Array(carrBits).fill(CARRY)).concat(new Array(moveBits).fill(MOVE)).sort();
+  return [MOVE, CARRY, WORK].concat(new Array(carrBits).fill(CARRY)).concat(new Array(moveBits).fill(MOVE)).sort();
 }
 
 var roleMule = {
