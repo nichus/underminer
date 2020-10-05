@@ -4,6 +4,8 @@ const roleUpgrader    = require('role.upgrader');
 const roleBuilder     = require('role.builder');
 const roleMule        = require('role.mule');
 
+var BreakException = {};
+
 require('version');
 if (!Memory.SCRIPT_VERSION || Memory.SCRIPT_VERSION !== SCRIPT_VERSION) {
   Memory.SCRIPT_VERSION = SCRIPT_VERSION;
@@ -11,10 +13,10 @@ if (!Memory.SCRIPT_VERSION || Memory.SCRIPT_VERSION !== SCRIPT_VERSION) {
 }
 
 const CREEP_COUNTS = Object.freeze({
-  harvester: 1,
-  mule: 1,
-  distributor: 1,
-  builder: 1,
+  harvester: 2,
+  mule: 2,
+  distributor: 2,
+  builder: 2,
   upgrader: 1
 });
 const SPAWN_PRIORITY = Object.freeze({
@@ -33,48 +35,56 @@ function creeps_by_role(spawner,role) {
 function spawnCreep(base, roomCreeps, roomName) {
   const memories = Object.keys(Memory.creeps).sort(function (a,b) { return SPAWN_PRIORITY[Memory.creeps[a].role] - SPAWN_PRIORITY[Memory.creeps[b].role]});
   //console.log(JSON.stringify(memories));
-  _.forEach(memories, function (memory) {
-    //console.log('Looking at memory of: '+memory);
-    let status = 2;
-    if (memory.includes('-' + roomName + '-') && !roomCreeps.includes(memory)) {
-      // console.log("Dead creep, and from this room, respawn");
-      const inheritance = Memory.creeps[memory];
-      if (inheritance.role === 'harvester') {
-        status = roleHarvester.spawn(base, inheritance);
-      } else if (inheritance.role === 'distributor') {
-        status = roleDistributor.spawn(base, inheritance);
-      } else if (inheritance.role === 'mule') {
-        status = roleMule.spawn(base, inheritance);
-      } else if (inheritance.role === 'builder') {
-        status = roleBuilder.spawn(base, inheritance);
-      } else if (inheritance.role === 'upgrader') {
-        status = roleUpgrader.spawn(base, inheritance);
-      } else {
-        console.log('Unknown expired creep found(' + memory + '): ' + JSON.stringify(inheritance));
-      }
+  try {
+    // Perhaps, rather than a try/catch wrapping a .forEach, I should try a .some()
+    _.forEach(memories, function (memory) {
+      //console.log('Looking at memory of: '+memory);
+      let status = 2;
+      if (memory.includes('-' + roomName + '-') && !roomCreeps.includes(memory)) {
+        // console.log("Dead creep, and from this room, respawn");
+        const inheritance = Memory.creeps[memory];
+        if (inheritance.role === 'harvester') {
+          status = roleHarvester.spawn(base, inheritance);
+        } else if (inheritance.role === 'distributor') {
+          status = roleDistributor.spawn(base, inheritance);
+        } else if (inheritance.role === 'mule') {
+          status = roleMule.spawn(base, inheritance);
+        } else if (inheritance.role === 'builder') {
+          status = roleBuilder.spawn(base, inheritance);
+        } else if (inheritance.role === 'upgrader') {
+          status = roleUpgrader.spawn(base, inheritance);
+        } else {
+          console.log('Unknown expired creep found(' + memory + '): ' + JSON.stringify(inheritance));
+        }
 
-      if (status === 0) {
-        console.log('Deleting creep history for: ' + memory);
-        delete Memory.creeps[memory];
-      } else if (status === ERR_BUSY) {
-        console.log("Spawner is busy");
-      } else if (status === ERR_NOT_ENOUGH_ENERGY) {
-        console.log("Not enough energy");
-      } else if (status === ERR_INVALID_ARGS) {
-        console.log("Invalid body design");
+        if (status === 0) {
+          console.log('Deleting creep history for: ' + memory);
+          delete Memory.creeps[memory];
+        } else if (status === ERR_BUSY) {
+          console.log("Spawner is busy");
+        } else if (status === ERR_NOT_ENOUGH_ENERGY) {
+          console.log("Not enough energy");
+        } else if (status === ERR_INVALID_ARGS) {
+          console.log("Invalid body design");
+        }
+        if (status !== 2) {
+          throw BreakException;
+        }
+      } else {
+        /*
+        console.log("Either not dead, or not from this room");
+        if (roomCreeps.includes(memory)) {
+          console.log("Dead Creep");
+        }
+        if (memory.includes('-'+roomName+'-')) {
+          console.log("From this room");
+        }
+        */
       }
-    } else {
-      /*
-      console.log("Either not dead, or not from this room");
-      if (roomCreeps.includes(memory)) {
-        console.log("Dead Creep");
-      }
-      if (memory.includes('-'+roomName+'-')) {
-        console.log("From this room");
-      }
-      */
-    }
-  });
+    });
+  } catch (e) {
+    if (e !== BreakException) throw e;
+  }
 }
 
 module.exports.loop = function () {
