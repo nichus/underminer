@@ -3,12 +3,11 @@ var Utils = require('lib.utils');
 function design(maxEnergy) {
   const baseCost  = (1*100)+(1*50)+(1*50);
   const unitCost  = (1*50)+(1*50);
-  maxEnergy       = maxEnergy - baseCost;
-  let units       = Math.max(0,Math.floor(maxEnergy/unitCost));
-  let workBits    = 0;
-  let carrBits    = units
-  let moveBits    = units + (Math.floor((maxEnergy-(unitCost*units))/50));
-  return [MOVE,CARRY,WORK].concat(Array(workBits).fill(WORK)).concat(Array(carrBits).fill(CARRY)).concat(Array(moveBits).fill(MOVE)).sort();
+  const avlEnergy = maxEnergy - baseCost;
+  const units       = Math.min(5, Math.max(0,Math.floor(avlEnergy/unitCost)));
+  const carrBits = units;
+  const moveBits = units + (avlEnergy - (units * unitCost)) > 50 ? 1 : 0;
+  return [MOVE, CARRY, WORK].concat(new Array(carrBits).fill(CARRY)).concat(new Array(moveBits).fill(MOVE)).sort();
 }
 
 var roleDistributor = {
@@ -21,13 +20,19 @@ var roleDistributor = {
       if (!inheritance) { inheritance = {} }
       inheritance.design = design(energy);
     }
-    let spawnCost   = inheritance.design.reduce((s,e) => s+BODYPART_COST[e], 0);
+
+    // eslint-disable-next-line
+    const spawnCost = inheritance.design.reduce((s,e) => s+BODYPART_COST[e], 0);
+    const newMemory = {role: 'distributor', design: inheritance.design};
     if (energy >= spawnCost) {
-      let memory  = {role: 'distributor', design: inheritance.design};
-      console.log('Spawning Distributor['+energy+']: ' + newName+"\ntemplate: "+ JSON.stringify(inheritance.design)+"\nmemory: "+JSON.stringify(memory));
-      return spawn.spawnCreep(inheritance.design, newName, {memory: memory});
+      console.log('Spawning Distributor['+energy+']: ' + newName+"\ntemplate: "+ JSON.stringify(inheritance.design)+"\nmemory: "+JSON.stringify(newMemory));
+      return spawn.spawnCreep(inheritance.design, newName, {memory: newMemory});
     }
-    return 1;
+
+    const tempDesign = design(energy);
+    console.log('Spawning Distributor[' + energy + ']: ' + newName + '\ntemplate: ' + JSON.stringify(tempDesign) +
+      '\nmemory: ' + JSON.stringify(newMemory));
+    return spawn.spawnCreep(tempDesign, newName, {memory: newMemory});
   },
   /** @param {Creep} creep **/
   run: function(creep) {

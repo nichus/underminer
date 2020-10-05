@@ -1,55 +1,65 @@
 var Utils = require('lib.utils');
 
 function design(maxEnergy) {
-  const baseCost  = (1*100)+(1*50)+(1*50);
-  const unitCost  = (1*50)+(1*50);
-  maxEnergy       = maxEnergy - baseCost;
-  let units       = Math.max(0,Math.floor(maxEnergy/unitCost));
+  const baseCost  = (1 * BODYPART_COST[WORK])+(1 * BODYPART_COST[CARRY])+(1 * BODYPART_COST[MOVE]);
+  const unitCost  = (1 * BODYPART_COST[CARRY])+(1 * BODYPART_COST[MOVE]);
+  let avlEnergy   = maxEnergy - baseCost;
+  let units       = Math.max(0,Math.floor(avlEnergy/unitCost));
   let workBits    = 0;
   let carrBits    = units
-  let moveBits    = units + (Math.floor((maxEnergy-(unitCost*units))/50));
-  return [MOVE,CARRY,WORK].concat(Array(workBits).fill(WORK)).concat(Array(carrBits).fill(CARRY)).concat(Array(moveBits).fill(MOVE)).sort();
+  let moveBits    = units + (Math.floor((avlEnergy - (unitCost * units)) / BODYPART_COST[MOVE]));
+  return [MOVE, CARRY, WORK].concat(new Array(workBits).fill(WORK)).concat(new Array(carrBits).fill(CARRY)).concat(new Array(moveBits).fill(MOVE)).sort();
 }
 
 var roleMule = {
-  spawn: function(base,inheritance) {
-    let spawn       = Game.spawns[base];
-    let energy      = spawn.room.energyAvailable;
-    let newName     = Utils.nameCreep('mule',base);
+  spawn: function(base, inheritance) {
+    const spawn   = Game.spawns[base];
+    const energy  = spawn.room.energyAvailable;
+    const newName = Utils.nameCreep('mule',base);
     if (!inheritance || !inheritance.design) {
       console.log('Missing Inheritance!');
-      if (!inheritance) { inheritance = {}; }
+      if (!inheritance) {
+        inheritance = {};
+      }
+
       inheritance.design = design(energy);
     }
-    let spawnCost   = inheritance.design.reduce((s,e) => s+BODYPART_COST[e], 0);
+    
+    // eslint-disable-next-line
+    const spawnCost = inheritance.design.reduce((s,e) => s+BODYPART_COST[e], 0);
+    const newMemory = {role: 'mule', container: inheritance.container, design: inheritance.design};
     if (energy >= spawnCost) {
-      let memory  = { role: 'mule', container: inheritance.container, design: inheritance.design };
-      //let memory   = { role: 'mule', container: inheritance.container };
-      console.log('Spawning Mule['+energy+']: ' + newName+"\ntemplate: "+ JSON.stringify(inheritance.design)+"\nmemory: "+JSON.stringify(memory));
-      return spawn.spawnCreep(inheritance.design, newName, {memory: memory});
+      console.log('Spawning Mule[' + energy + ']: ' + newName + '\ntemplate: ' + JSON.stringify(inheritance.design) +
+        '\nmemory: ' + JSON.stringify(newMemory));
+      return spawn.spawnCreep(inheritance.design, newName, {memory: newMemory});
     }
-    return 1;
+
+    const tempDesign = design(energy);
+    console.log('Spawning Mule[' + energy + ']: ' + newName + '\ntemplate: ' + JSON.stringify(tempDesign) +
+      '\nmemory: ' + JSON.stringify(newMemory));
+    return spawn.spawnCreep(tempDesign, newName, {memory: newMemory});
   },
   /** @param {Creep} creep **/
   run: function(creep) {
+    if (!creep.memory.storage) {
+      creep.memory.storage = creep.room.find(FIND_STRUCTURES, {
+        filter: structure => {
+          return (structure.structureType === STRUCTURE_STORAGE && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
+        }
+      })[0].id;
+    }
+
     if (creep.memory.storing && creep.store[RESOURCE_ENERGY] === 0) {
       creep.memory.storing = false;
       creep.say('🔄 collect');
     }
+
     if (!creep.memory.storing && creep.store.getFreeCapacity() === 0) {
       creep.memory.storing = true;
       creep.say('⚡ deposit');
     }
 
     if (creep.memory.storing) {
-      if (!creep.memory.storage) {
-        creep.memory.storage = creep.room.find(FIND_STRUCTURES, {
-          filter: structure => {
-            return (structure.structureType === STRUCTURE_STORAGE && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
-          }
-        })[0].id;
-      }
-
       const target = Game.getObjectById(creep.memory.storage);
       if (target !== null) {
         // for

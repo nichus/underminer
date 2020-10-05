@@ -18,11 +18,13 @@
     "xo": "^0.33.1"
   },
   "dependencies": {
-    "grunt-screeps": "^1.4.0"
+    "grunt-screeps": "^1.4.0",
+    "webpack": "^4.44.2"
   },
   "xo": {
     "space": true,
     "globals": [
+      "BODYPART_COST",
       "CARRY",
       "ERR_NOT_IN_RANGE",
       "FIND_CONSTRUCTION_SITES",
@@ -34,6 +36,7 @@
       "FIND_MY_STRUCTURES",
       "FIND_SOURCES",
       "FIND_STRUCTURES",
+      "FIND_MINERALS",
       "Game",
       "LOOK_TERRAIN",
       "Memory",

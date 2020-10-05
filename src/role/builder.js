@@ -1,34 +1,43 @@
 var Utils = require('lib.utils');
 
 function design(maxEnergy) {
-  const baseCost  = (1*100)+(1*50)+(1*50);
-  const unitCost  = baseCost;
-  let energy      = maxEnergy - baseCost;
-  let units       = Math.max(0,Math.floor(energy/unitCost));
-  let workBits    = units;
-  let carrBits    = units + Math.floor((energy-(units*unitCost))/100);
-  let moveBits    = units + Math.floor((energy-(units*unitCost)-((carrBits-workBits)*50))/50);
-  console.log("workBits: "+workBits+", carrBits: "+carrBits+", moveBits: "+moveBits);
-  return [MOVE,CARRY,WORK].concat(Array(workBits).fill(WORK)).concat(Array(carrBits).fill(CARRY)).concat(Array(moveBits).fill(MOVE)).sort();
-  console.log(FOO);
+  const baseCost = BODYPART_COST[WORK] + BODYPART_COST[CARRY] + BODYPART_COST[MOVE];
+  const unitCost = baseCost;
+  const   energy = maxEnergy - baseCost;
+  const    units = Math.min(4, Math.max(0, Math.floor(energy / unitCost)));
+  const workBits = units;
+  const carrBits = Math.min(5, units + Math.max(Math.floor((energy - (units * unitCost)) / BODYPART_COST[WORK])));
+  const moveBits = Math.min(6, units + Math.floor((energy-(units*unitCost)-((carrBits-workBits)*BODYPART_COST[CARRY]))/BODYPART_COST[CARRY]));
+  console.log('workBits: ' + workBits + ', carrBits: ' + carrBits + ', moveBits: ' + moveBits);
+  return [MOVE, CARRY, WORK].concat(new Array(workBits).fill(WORK)).concat(new Array(carrBits).fill(CARRY)).concat(new Array(moveBits).fill(MOVE)).sort();
 }
 var roleBuilder = {
-  spawn: function(base,inheritance) {
-    let spawn   = Game.spawns[base];
-    let energy  = spawn.room.energyAvailable;
-    let newName = Utils.nameCreep('builder',base);
+  spawn: function(base, inheritance) {
+    const spawn   = Game.spawns[base];
+    const energy  = spawn.room.energyAvailable;
+    const newName = Utils.nameCreep('builder', base);
     if (!inheritance || !inheritance.design) {
       console.log('Missing inheritance!');
-      if (!inheritance) { inheritance = {}; }
+      if (!inheritance) {
+        inheritance = {};
+      }
+
       inheritance.design = design(energy);
     }
-    let spawnCost   = inheritance.design.reduce((s,e) => s+BODYPART_COST[e], 0);
+
+    // eslint-disable-next-line
+    const spawnCost = inheritance.design.reduce((s, e) => s+BODYPART_COST[e], 0);
+    const newMemory = {role: 'builder', design: inheritance.design};
     if (energy >= spawnCost) {
-      let memory  = {role: 'builder', design: inheritance.design};
-      console.log('Spawning Builder['+energy+']: ' + newName+"\ntemplate: "+JSON.stringify(inheritance.design)+"\nmemory: "+JSON.stringify(memory));
-      return spawn.spawnCreep(inheritance.design, newName, {memory: memory});
+      console.log('Spawning Builder[' + energy + ']: ' + newName + '\ntemplate: ' + JSON.stringify(inheritance.design) +
+        '\nmemory: ' + JSON.stringify(newMemory));
+      return spawn.spawnCreep(inheritance.design, newName, {memory: newMemory});
     }
-    return 1;
+
+    const tempDesign = design(energy);
+    console.log('Spawning Builder[' + energy + ']: ' + newName + '\ntemplate: ' + JSON.stringify(tempDesign) +
+      '\nmemory: ' + JSON.stringify(newMemory));
+    return spawn.spawnCreep(tempDesign, newName, {memory: newMemory});
   },
   /** @param {Creep} creep **/
   run: function(creep) {

@@ -11,10 +11,10 @@ if (!Memory.SCRIPT_VERSION || Memory.SCRIPT_VERSION !== SCRIPT_VERSION) {
 }
 
 const CREEP_COUNTS = Object.freeze({
-  harvester: 2,
-  mule: 2,
-  distributor: 2,
-  builder: 3,
+  harvester: 1,
+  mule: 1,
+  distributor: 1,
+  builder: 1,
   upgrader: 1
 });
 const SPAWN_PRIORITY = Object.freeze({
@@ -36,8 +36,8 @@ function spawnCreep(base, roomCreeps, roomName) {
   _.forEach(memories, function (memory) {
     //console.log('Looking at memory of: '+memory);
     let status = 2;
-    if (memory.includes('-'  + roomName + '-') && !roomCreeps.includes(memory)) {
-      //console.log("Dead creep, and from this room, respawn");
+    if (memory.includes('-' + roomName + '-') && !roomCreeps.includes(memory)) {
+      // console.log("Dead creep, and from this room, respawn");
       const inheritance = Memory.creeps[memory];
       if (inheritance.role === 'harvester') {
         status = roleHarvester.spawn(base, inheritance);
@@ -56,6 +56,12 @@ function spawnCreep(base, roomCreeps, roomName) {
       if (status === 0) {
         console.log('Deleting creep history for: ' + memory);
         delete Memory.creeps[memory];
+      } else if (status === ERR_BUSY) {
+        console.log("Spawner is busy");
+      } else if (status === ERR_NOT_ENOUGH_ENERGY) {
+        console.log("Not enough energy");
+      } else if (status === ERR_INVALID_ARGS) {
+        console.log("Invalid body design");
       }
     } else {
       /*
