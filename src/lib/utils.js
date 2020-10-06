@@ -67,7 +67,7 @@ const utils = {
     if (! creep.memory.storage ) {
       creep.memory.storage = creep.room.find(FIND_STRUCTURES, {
         filter: (structure) => {
-          return (structure.structureType == STRUCTURE_STORAGE && structure.store.getUsedCapacity(RESOURCE_ENERGY) > 0);
+          return (structure.structureType == STRUCTURE_STORAGE && structure.store.getUsedCapacity(RESOURCE_ENERGY) >= 0);
         }
       })[0].id;
     }
