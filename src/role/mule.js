@@ -3,11 +3,14 @@ var Utils = require('lib.utils');
 function design(maxEnergy) {
   const baseCost  = BODYPART_COST[CARRY] + BODYPART_COST[MOVE] + BODYPART_COST[WORK];
   const unitCost  = BODYPART_COST[CARRY] + BODYPART_COST[MOVE];
-  const avlEnergy = maxEnergy - baseCost;
+  let   avlEnergy = maxEnergy - baseCost;
   const units     = Math.min(14, Math.max(0, Math.floor(avlEnergy / unitCost)));
   const carrBits  = units;
-  const moveBits  = units + Math.min(1, Math.floor((avlEnergy - (unitCost * units)) / BODYPART_COST[MOVE]));
-  return [MOVE, CARRY, WORK].concat(new Array(carrBits).fill(CARRY)).concat(new Array(moveBits).fill(MOVE)).sort();
+  avlEnergy -= ((units * unitCost) + (carrBits * BODYPART_COST[CARRY]));
+  const moveBits  = units + Math.min(1, Math.floor(avlEnergy / BODYPART_COST[WORK]));
+  const carrArray = new Array(carrBits).fill(CARRY);
+  const moveArray = new Array(moveBits).fill(MOVE);
+  return [MOVE, CARRY, WORK].concat(carrArray).concat(moveArray).sort();
 }
 
 const roleMule = {
@@ -67,6 +70,7 @@ const roleMule = {
           creep.transfer(target, RESOURCE_ENERGY);
           creep.transfer(target, RESOURCE_KEANIUM);
           creep.transfer(target, RESOURCE_GHODIUM_OXIDE);
+          creep.transfer(target, RESOURCE_ZYNTHIUM_HYDRIDE);
         } else {
           creep.moveTo(target, {visualizePathStyle: {stroke: '#aaffaa'}});
         }

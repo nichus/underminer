@@ -6,7 +6,7 @@ function design(maxEnergy) {
   const   energy = maxEnergy - baseCost;
   const    units = Math.min(4, Math.max(0, Math.floor(energy / unitCost)));
   const workBits = units;
-  const carrBits = Math.min(5, units + Math.max(Math.floor((energy - (units * unitCost)) / BODYPART_COST[WORK])));
+  const carrBits = Math.min(5, units + Math.max(0, Math.floor((energy - (units * unitCost)) / BODYPART_COST[WORK])));
   const moveBits = Math.min(6, units + Math.floor((energy-(units*unitCost)-((carrBits-workBits)*BODYPART_COST[CARRY]))/BODYPART_COST[CARRY]));
   console.log('workBits: ' + workBits + ', carrBits: ' + carrBits + ', moveBits: ' + moveBits);
   return [MOVE, CARRY, WORK].concat(new Array(workBits).fill(WORK)).concat(new Array(carrBits).fill(CARRY)).concat(new Array(moveBits).fill(MOVE)).sort();
